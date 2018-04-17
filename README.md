@@ -8,6 +8,10 @@
 ## 修改
 如想要自己额外修改，只需將本项目导入到`eclipse`中重新编译打包即可！
 
+## 基于DataBinding的万能适配
+#### [fit-screen][fits-screen] 基于databinding实现，扩展性极强，绝对精准适配，只有几个文件组成，上手极度简单！！！
+
 
 [libs]:https://github.com/albert-lii/FitScreen/tree/master/libs
 [autolayout]:https://blog.csdn.net/lmj623565791/article/details/45460089#reply
+[fits-screen]:https://github.com/albert-lii/EasyBinding/blob/master/fit-screen/README.md
