@@ -4,26 +4,29 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
 public class GenerateValueFiles {
-	private int baseW;
-	private int baseH;
-	// 标准 density
-	private float basedensity;
-
-	private String dirStr = "./res";
-
+	// 宽与高的 dimen 模板
 	private final static String WTemplate = "<dimen name=\"x{0}\">{1}px</dimen>\n";
 	private final static String HTemplate = "<dimen name=\"y{0}\">{1}px</dimen>\n";
-	// 要用来生成默认 values 里的 dp 的
+	// 要用来生成默认的  values 里的尺寸值
 	private final static String ValuesdefaultWTemplate = "<dimen name=\"x{0}\">{1}dp</dimen>\n";
 	private final static String ValuesdefaultHTemplate = "<dimen name=\"y{0}\">{1}dp</dimen>\n";
-
-	/**
-	 * {0}-HEIGHT
-	 */
+	// 生成的文件夹名称模板，{0}：HEIGHT {1}：WIDTH，例如：values-1920x1080
 	private final static String VALUE_TEMPLATE = "values-{0}x{1}";
-	private static final String SUPPORT_DIMESION = "320,400;320,480;480,800;480,854;540,960;600,1024;720,1184;720,1196;720,1280;768,1024;768,1280;800,1280;1080,1776;1080,1794;1080,1800;1080,1812;1080,1920;1080,2016;1080,2040;1080,2160;1200,1920;1440,2560;1440,2880;1440,2960;1600,2560;";
+	// 默认支持的分辨率
+	private static final String SUPPORT_DIMESION = "320,400;320,480;480,800;480,854;540,854;540,960;600,800;600,1024;720,1184;720,1196;720,1208;720,1280;768,1024;768,1280;800,1280;1080,1700;1080,1776;1080,1794;1080,1800;1080,1812;1080,1920;1080,2016;1080,2040;1080,2160;1200,1920;1440,2560;1440,2880;1440,2960;1600,2560;";
 
+	
+	// 设计图的宽高
+	private int baseW;
+	private int baseH;
+	// 标准  density，用于生成默认的  values 适配文件
+	private float basedensity;
+	// 文件存储路径
+	private String dirStr = "./res";
+	// 支持的分辨率
 	private String supportStr = SUPPORT_DIMESION;
+
+	
 
 	public GenerateValueFiles(int baseX, int baseY, String supportStr) {
 		this.baseW = baseX;
@@ -35,24 +38,46 @@ public class GenerateValueFiles {
 		// 把传过来的带逗号“，”和下划线“_”的额外支持的处理一下，
 		this.supportStr += validateInput(supportStr);
 
-		// 根据UI给的图的标准的 baseW 和 baseY（如果没有的话默认 320 和 400）
-		System.out.println(supportStr);
+		// 根据 UI 给的图的标准的  baseW 和  baseY（如果没有的话默认 1080和 1920）
 		File dir = new File(dirStr);
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
-		System.out.println(dir.getAbsoluteFile());
-		// 看下 UI 给的图是否是我们的6套标准图，如果是，就生成我们的默认default
+		// 看下 UI 给的图是否是我们的  6  套标准图，如果是，就生成我们的默认  default
 		getBasedensity(baseX, baseY);
 		if (this.basedensity != 0.0f) {
 			// 生成默认的
 			generatedefaultXmlFile(baseX, baseY, this.basedensity);
 		}
 	}
+	
+	/**
+	 * 判断五种  density 利用 PX = density * DP 来计算  dp
+	 * 
+	 * @param baseW
+	 * @param baseH
+	 */
+	private void getBasedensity(int baseW, int baseH) {
+		if (baseW == 240 && baseH == 320) {
+			this.basedensity = 0.75f;
+		} else if (baseW == 320 && baseH == 480) {
+			this.basedensity = 1f;
+		} else if (baseW == 480 && baseH == 800) {
+			this.basedensity = 1.5f;
+		} else if ((baseW == 720 && baseH == 1280)||(baseW==768 && baseH==1280)) {
+			this.basedensity = 2f;
+		} else if (baseW == 1080 && baseH == 1920) {
+			this.basedensity = 3f;
+		} else if (baseW == 1440 && baseH == 2560) {
+			this.basedensity = 4f;
+		} else {
+			this.basedensity = 3f;
+		}
+	}
 
 	/**
 	 * @param supportStr
-	 *            w,h_...w,h;
+	 *           
 	 * @return
 	 */
 	private String validateInput(String supportStr) {
@@ -69,16 +94,16 @@ public class GenerateValueFiles {
 				w = Integer.parseInt(wh[0]);
 				h = Integer.parseInt(wh[1]);
 			} catch (Exception e) {
-				System.out.println("skip invalidate params : w,h = " + val);
 				continue;
 			}
 			sb.append(w + "," + h + ";");
 		}
-
 		return sb.toString();
 	}
 
-	// 把执行命令的语句拆开，一个尺寸，一个尺寸的去掉用 generateXmlFile
+	/**
+	 * 把执行命令的语句拆开，一个尺寸，一个尺寸的去调用  generateXmlFile
+	 */
 	public void generate() {
 		String[] vals = supportStr.split(";");
 		for (String val : vals) {
@@ -87,33 +112,20 @@ public class GenerateValueFiles {
 		}
 	}
 
-	// 判断五种 density 利用 PX = density * DP 来计算 dp
-	private void getBasedensity(int baseW, int baseH) {
-		if (baseW == 240 && baseH == 320) {
-			this.basedensity = 0.75f;
-		} else if (baseW == 320 && baseH == 480) {
-			this.basedensity = 1f;
-		} else if (baseW == 480 && baseH == 800) {
-			this.basedensity = 1.5f;
-		} else if (baseW == 720 && baseH == 1280) {
-			this.basedensity = 2f;
-		} else if (baseW == 1080 && baseH == 1920) {
-			this.basedensity = 3f;
-		} else if (baseW == 1440 && baseH == 2560) {
-			this.basedensity = 4f;
-		} else {
-			this.basedensity = 3f;
-		}
-	}
 
-	// 用来生成添加在 values 里面的默认的尺寸 dip 信息
+	/**
+	 * 生成默认的 values 适配文件夹
+	 * 
+	 * @param w
+	 * @param h
+	 * @param basedensity
+	 */
 	private void generatedefaultXmlFile(int w, int h, float basedensity) {
+		// 宽度  xml 的内容
 		StringBuffer sbForWidth = new StringBuffer();
 		sbForWidth.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 		sbForWidth.append("<resources>");
-
 		float cellw = w * 1.0f / baseW;
-		System.out.println("width : " + w + "," + baseW + "," + cellw);
 		for (int i = 1; i < baseW; i++) {
 			sbForWidth.append(ValuesdefaultWTemplate.replace("{0}", i + "").replace("{1}",
 					change(cellw * i / this.basedensity) + ""));
@@ -122,11 +134,11 @@ public class GenerateValueFiles {
 		sbForWidth.append(ValuesdefaultWTemplate.replace("{0}", w + "").replace("{1}", baseW / this.basedensity + ""));
 		sbForWidth.append("</resources>");
 
+		// 高度  xml 的内容
 		StringBuffer sbForHeight = new StringBuffer();
 		sbForHeight.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 		sbForHeight.append("<resources>");
 		float cellh = h * 1.0f / baseH;
-		System.out.println("height : " + h + "," + baseH + "," + cellh);
 		for (int i = 1; i < baseH; i++) {
 			sbForHeight.append(ValuesdefaultHTemplate.replace("{0}", i + "").replace("{1}",
 					change(cellh * i / this.basedensity) + ""));
@@ -135,11 +147,10 @@ public class GenerateValueFiles {
 		sbForHeight.append(ValuesdefaultHTemplate.replace("{0}", h + "").replace("{1}", baseH / this.basedensity + ""));
 		sbForHeight.append("</resources>");
 
-		File fileDir = new File(dirStr + File.separator + VALUE_TEMPLATE.replace("{0}x{1}", "default"));
+		File fileDir = new File(dirStr + File.separator + VALUE_TEMPLATE.replace("-{0}x{1}", ""));
 		fileDir.mkdir();
-
-		File layxFile = new File(fileDir.getAbsolutePath(), "lay_default_x.xml");
-		File layyFile = new File(fileDir.getAbsolutePath(), "lay_default_y.xml");
+		File layxFile = new File(fileDir.getAbsolutePath(), "lay_x.xml");
+		File layyFile = new File(fileDir.getAbsolutePath(), "lay_y.xml");
 		try {
 			PrintWriter pw = new PrintWriter(new FileOutputStream(layxFile));
 			pw.print(sbForWidth.toString());
@@ -150,29 +161,27 @@ public class GenerateValueFiles {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		// File layxFile = new File(dirStr, "lay_default.xml");
-		// try {
-		// PrintWriter pw = new PrintWriter(new FileOutputStream(layxFile));
-		// pw.print(sbForWidth.toString());
-		// pw.close();
-		// } catch (FileNotFoundException e) {
-		// e.printStackTrace();
-		// }
 	}
 
+	/**
+	 * 生成 xml 文件
+	 * 
+	 * @param w
+	 * @param h
+	 */
 	private void generateXmlFile(int w, int h) {
+		// 宽度  xml 的内容
 		StringBuffer sbForWidth = new StringBuffer();
 		sbForWidth.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 		sbForWidth.append("<resources>");
 		float cellw = w * 1.0f / baseW;
-
-		System.out.println("width : " + w + "," + baseW + "," + cellw);
 		for (int i = 1; i < baseW; i++) {
 			sbForWidth.append(WTemplate.replace("{0}", i + "").replace("{1}", change(cellw * i) + ""));
 		}
 		sbForWidth.append(WTemplate.replace("{0}", baseW + "").replace("{1}", w + ""));
 		sbForWidth.append("</resources>");
 
+		// 高度  xml 的内容
 		StringBuffer sbForHeight = new StringBuffer();
 		sbForHeight.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 		sbForHeight.append("<resources>");
@@ -184,7 +193,7 @@ public class GenerateValueFiles {
 		sbForHeight.append(HTemplate.replace("{0}", baseH + "").replace("{1}", h + ""));
 		sbForHeight.append("</resources>");
 
-		File fileDir = new File(dirStr + File.separator + VALUE_TEMPLATE.replace("{0}", h + "")//
+		File fileDir = new File(dirStr + File.separator + VALUE_TEMPLATE.replace("{0}", h + "")
 				.replace("{1}", w + ""));
 		fileDir.mkdir();
 
@@ -202,15 +211,22 @@ public class GenerateValueFiles {
 		}
 	}
 
-	// 可能是控制精度把？？？
+	/**
+	 * 可能是控制精度把？？？
+	 * 
+	 * @param a
+	 * @return
+	 */
 	public static float change(float a) {
 		int temp = (int) (a * 100);
 		return temp / 100f;
 	}
-
+	
+	
 	public static void main(String[] args) {
-		int baseW = 320;
-		int baseH = 400;
+		// 默认尺寸值为  1920x1080
+		int baseW = 1080;
+		int baseH = 1920;
 		String addition = "";
 		try {
 			if (args.length >= 3) {
